@@ -1,0 +1,128 @@
+# ============================================================================
+#  Local configuration.  Nothing here leaves the L&T network.
+#  Endpoints must be INTERNAL/self-hosted.  See README section "Confidentiality".
+# ============================================================================
+
+endpoints:
+  # Vision model used ONLY to read the InPASS captcha image.
+  # Captcha images contain no proprietary information, so any endpoint is safe here.
+  vision:
+    # Dedicated OCR model - the right tool for captcha reading, confirmed
+    # OpenAI-compatible via /v1/models on 22 Sep 2026. Actual read-accuracy on
+    # a live captcha not yet confirmed - see scripts/test_captcha_ocr.py.
+    # Chain-falls-back to manual entry on any failure either way.
+    enabled: true
+    api_shape: openai
+    base_url: "http://172.16.34.8:8080/v1"
+    model: "glm-ocr"
+    auth_header: "Authorization"
+    auth_value: "none"
+    timeout_s: 15   # short on purpose - see captcha.mode note above:
+                    # do not let a stale/unreachable endpoint hang a harvest
+    # qwen3-max (172.16.34.11:8000) was intended as a general-vision fallback
+    # but refused connections on 22 Sep 2026 (down, or wrong host/port). Not
+    # needed for captcha solving - glm-ocr is the better-suited model anyway -
+    # revisit only if a future step needs general image understanding
+    # (e.g. reading a figure out of a patent PDF).
+
+  # LLM used for relevance judging of harvested abstracts against the invention
+  # fingerprint.  This DOES see proprietary invention text, so it MUST be a
+  # self-hosted internal model.  Leave disabled to fall back to local-only
+  # TF-IDF + rule scoring.
+  llm:
+    # Text reasoning: claim extraction, search-question generation, per-claim
+    # comparison. Confirmed working via curl on 21 Sep 2026.
+    enabled: true
+    api_shape: openai
+    base_url: "http://172.16.34.5:8000/v1"
+    model: "qwen3-max"
+    auth_header: "Authorization"
+    auth_value: "none"
+    timeout_s: 120
+    # Multi-turn examiner calls run in thinking mode and can take minutes;
+    # the claims draft in particular reads the whole disclosure and can be
+    # the slowest single call in the pipeline (hit a ReadTimeout at 600s on
+    # 2026-10-05 against the real server -- raised to 1500s).
+    converse_timeout_s: 1500
+    max_concurrency: 4
+    # NOTE: "qwen3-max" is only the served name. /v1/models on 5 Oct 2026
+    # showed root "Qwen3.8-27B-FP8/" on vLLM, max_model_len 262000. The
+    # client refuses any base_url that is not a private/loopback address.
+
+examiner:
+  # Retrieval: top documents per claim element, and overall cap on how many
+  # references get charted (each is one LLM call). Measured throughput on
+  # 2026-10-05 was ~1 token/sec on this endpoint, so each reference read
+  # (thinking + JSON) can take several minutes -- kept modest on purpose.
+  refs_per_element: 4
+  max_refs: 20
+  # Rank every harvested document in the database, not just this
+  # conversation's own harvest. Retrieval scores against the claim elements,
+  # so unrelated documents are not selected; set false if the database
+  # mixes inventions and you want them kept apart.
+  pool_all_documents: true
+  # Thinking mode for the claims draft and the per-reference claim-chart
+  # read. Both are structured-JSON tasks where the reasoning is disposable
+  # (only the chart's `quote`/`reasoning` fields survive, and those are
+  # quote-verified against the source regardless) -- turned off to trade
+  # depth for speed on a slow endpoint. The interview itself keeps thinking
+  # on always, since that's the part where reasoning quality actually shows
+  # up in what the inventor sees. Flip these back to true once the server's
+  # throughput is confirmed to be faster (see internal-llm-endpoint memory).
+  claims_thinking: false
+  chart_thinking: false
+  # When system prompt + history passes this (estimated tokens), older turns
+  # are folded into a summary. Well under the 262K window on purpose.
+  history_token_budget: 150000
+
+captcha:
+  # IMPORTANT: InPASS (internet) and the vision/OCR endpoints (intranet,
+  # 172.16.34.x) are on mutually exclusive networks on this machine - one is
+  # reachable only when the other is not. That makes auto-solving unusable
+  # DURING a harvest session: you cannot be on internet (to reach InPASS) and
+  # intranet (to reach glm-ocr) at the same instant a captcha needs solving.
+  #
+  # This isn't a real loss: while harvesting you're at the browser anyway, so
+  # you just read the captcha and type it - no network round-trip needed.
+  # Auto-solve stays available only for a machine that happens to have both
+  # networks at once (a dual-homed box / VPN split-tunnel, if one exists).
+  #
+  # manual  -> saves png, you type it in (default - matches the network split)
+  # vision  -> uses endpoints.vision (glm-ocr) - only if you have both networks
+  # auto    -> vision if enabled, else manual
+  mode: manual
+  max_attempts: 5
+
+portal:
+  base_url: "https://iprsearch.ipindia.gov.in/PublicSearch"
+  # Be a good citizen: this is a public government service.
+  delay_between_requests_s: 1.5
+  delay_between_queries_s: 4.0
+  request_timeout_s: 90
+  max_retries: 3
+  # Safety valve: skip harvesting any query returning more than this many hits
+  # (indicates a badly-formed, too-broad query).
+  max_hits_per_query: 400
+
+# USPTO Patent Public Search -- second source, added alongside InPASS.
+# No captcha (see priorart/ppubs/client.py's module docstring for the real,
+# confirmed-live protocol), so no captcha/vision config needed here.
+# delay_between_requests_s raised from 1.5 to 4.0 after live testing: heavy
+# same-day use (many live probes plus several harvest re-runs while
+# debugging the client) tripped the real site's own rate limiter hard --
+# nearly every detail fetch needed at least one retry. A longer gap between
+# requests is the "be a good citizen" fix, not just retrying faster into
+# the same limit.
+ppubs:
+  base_url: "https://ppubs.uspto.gov"
+  delay_between_requests_s: 4.0
+  request_timeout_s: 30
+  max_retries: 3
+  page_size: 50
+
+run:
+  db_path: "out/priorart.db"
+  date_from: "01/01/2006"  # past 20 years from today (2026-09-24)
+  date_to:   "12/31/2026"
+  status: published        # published | granted | both
+  date_field: PD           # APD=appl date, PD=publication, PDG=grant, PRD=priority

@@ -1,0 +1,155 @@
+axes:
+  A_novelty:
+    anchor_facets:
+    - modality
+    - platform
+    - task
+    description: Application context, progressively refined by technique
+    refine_facets:
+    - wavelet_scattering
+    - feature_fusion
+    - robustness_engineering
+  B_whitespace:
+    anchor_facets:
+    - wavelet_scattering
+    description: Is the core technique used in any other domain?
+    refine_facets:
+    - task
+facet_pillar_map:
+  feature_fusion: ml_architecture
+  robustness_engineering: signal_feature_engineering
+  wavelet_scattering: signal_feature_engineering
+facets:
+  feature_fusion:
+    label: Multi-Feature Fusion
+    phrases:
+    - SMART FEATURE FUSION
+    - MULTI DOMAIN FUSION
+    required: false
+    weight: 1.5
+    words:
+    - FUSION
+    - COMBINATION
+    - AGGREGATION
+    - MULTI FEATURE
+    - COMPLEMENTARY
+    - FUSED REPRESENTATION
+  modality:
+    label: Acoustic Sensing
+    phrases:
+    - AUDIO DATA
+    - ACUSTIC SENSING
+    - HIGH SENSITIVITY MICROPHONE
+    required: true
+    weight: 3
+    words:
+    - AUDIO
+    - SOUND
+    - MICROPHONE
+    - AUDIO SIGNAL
+    - ACUSTIC
+    - WAVEFORM
+    - SPEECH
+    - NOISE
+  platform:
+    label: Unmanned Aerial Vehicle
+    phrases:
+    - UAV DETECTION
+    - C-UAS OPERATIONS
+    required: true
+    weight: 3
+    words:
+    - UAV
+    - DRONE
+    - QUADCOPTER
+    - UAS
+    - AERIAL PLATFORM
+    - ROTARY WING
+    - FLIGHT
+  robustness_engineering:
+    label: Noise Robustness Engineering
+    phrases:
+    - NOISE ROBUST DETECTION
+    - REALISTIC CONDITIONS
+    required: false
+    weight: 1.5
+    words:
+    - NOISE ROBUSTNESS
+    - DISTORTION RESILIENCE
+    - REVERBERATION
+    - LOW SNR
+    - ENVIRONMENTAL NOISE
+    - INTERFERENCE
+  task:
+    label: Classification and Detection
+    phrases:
+    - TYPE CLASSIFICATION
+    - REAL TIME DETECTION
+    required: true
+    weight: 2
+    words:
+    - CLASSIFY
+    - DETECT
+    - IDENTIFY
+    - MONITOR
+    - DETECTION
+    - CATEGORIZATION
+    - DISCRIMINATION
+  wavelet_scattering:
+    label: Wavelet Scattering Transform
+    phrases:
+    - WAVELET SCATTERING TRANSFORM
+    - SCATTERING REPRESENTATION
+    required: false
+    weight: 6
+    words:
+    - WAVELET
+    - SCATTERING
+    - TRANSFORM
+    - WST
+    - SCATTERING COEFFICIENTS
+    - TIME FREQUENCY
+    - WAVELET BASED
+fingerprint: This invention proposes a machine learning framework for Counter Unmanned Aerial System (C-UAS)
+  operations that utilizes acoustic sensors to detect and classify various types of drones. Unlike prior
+  art relying on limited datasets or single handcrafted features like MFCCs, this system employs a Wavelet
+  Scattering Transform (WST) to generate robust time-frequency representations. The architecture integrates
+  this advanced feature extraction with a 1D CNN and LSTM for classification, addressing limitations in
+  generalization across diverse flight patterns, noise conditions, and non-anechoic environments. By focusing
+  on smart feature fusion and noise robustness, the method aims to provide a low-cost, passive detection
+  solution capable of operating effectively under realistic acoustic interference and varying rotor speeds.
+ipc_codes: []
+known_art_controls: []
+meta:
+  derivation_method: llm
+  id: robust_acoustic_uav_detection_via_wavele
+  jurisdiction_note: InPASS = India only. Not sufficient alone to establish novelty.
+  title: Robust Acoustic UAV Detection via Wavelet Scattering and Feature Fusion
+pillars:
+  ml_architecture:
+    label: Deep Learning Classification Framework
+    note: Covers the CNN/LSTM architecture and feature fusion logic.
+    status: claiming
+  operational_constraints:
+    label: Edge Deployment and Low Latency
+    note: Addresses the requirement for low latency and resource-constrained operation.
+    status: claiming
+  signal_feature_engineering:
+    label: Advanced Acoustic Feature Extraction
+    note: Focuses on the specific use of Wavelet Scattering Transform over standard MFCCs/FFT.
+    status: claiming
+presets:
+- name: Core novelty sweep
+  rows:
+  - modality
+  - platform
+  - task
+- name: Wavelet Scattering Transform + application
+  rows:
+  - modality
+  - platform
+  - wavelet_scattering
+- name: 'White space: Wavelet Scattering Transform anywhere'
+  rows:
+  - wavelet_scattering
+  - task

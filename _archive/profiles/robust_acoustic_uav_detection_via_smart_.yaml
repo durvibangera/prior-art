@@ -1,0 +1,176 @@
+axes:
+  A_novelty:
+    anchor_facets:
+    - modality
+    - platform
+    - task
+    description: Application context, progressively refined by technique
+    refine_facets:
+    - smart_feature_fusion
+    - robust_engineering
+    - diverse_dataset
+  B_whitespace:
+    anchor_facets:
+    - smart_feature_fusion
+    description: Is the core technique used in any other domain?
+    refine_facets:
+    - task
+facet_pillar_map:
+  diverse_dataset: data_quality
+  robust_engineering: ml_architecture
+  smart_feature_fusion: ml_architecture
+facets:
+  diverse_dataset:
+    label: Diverse Dataset Training
+    phrases:
+    - DIVERSE DATASET
+    - REALISTIC CONDITIONS
+    required: false
+    weight: 1.5
+    words:
+    - DATASET
+    - TRAINING
+    - DATA
+    - SAMPLE
+    - RECORDING
+    - ENVIRONMENT
+    - CONDITION
+    - REALISTIC
+    - NOISE
+    - VARIETY
+  modality:
+    label: Acoustic Sensing
+    phrases:
+    - ACOUSTIC SENSING
+    - AUDIO SIGNAL
+    required: true
+    weight: 3
+    words:
+    - AUDIO
+    - SOUND
+    - MICROPHONE
+    - SPEECH
+    - NOISE
+    - SIGNAL
+    - WAVEFORM
+    - DECIBEL
+    - SNR
+    - SPECTRUM
+  platform:
+    label: Unmanned Aerial Vehicle
+    phrases:
+    - UAV DETECTION
+    - AERIAL PLATFORM
+    required: true
+    weight: 3
+    words:
+    - UAV
+    - DRONE
+    - QUADCOPTER
+    - HELICOPTER
+    - AIRBORNE
+    - ROTARY
+    - WING
+    - AERIAL
+    - PLATFORM
+    - THREAT
+  robust_engineering:
+    label: Robust Feature Engineering
+    phrases:
+    - SMART ML FEATURE ENGINEERING
+    required: false
+    weight: 2
+    words:
+    - ENGINEERING
+    - HANDCRAFTED
+    - EXTRACT
+    - FEATURE
+    - REPRESENTATION
+    - TRANSFORM
+    - MAP
+    - VECTOR
+    - DIMENSION
+    - REDUCTION
+  smart_feature_fusion:
+    label: Smart Acoustic Feature Fusion
+    phrases:
+    - SMART FEATURE FUSION
+    - MULTI-DOMAIN FUSION
+    required: false
+    weight: 6
+    words:
+    - FEATURE
+    - FUSION
+    - FUSED
+    - COMBINE
+    - AGGREGATE
+    - MERGE
+    - INTEGRATE
+    - DOMAIN
+    - CORRELATION
+    - COMPLEMENTARY
+  task:
+    label: Classification and Detection
+    phrases:
+    - CLASSIFICATION TASK
+    - DETECTION TASK
+    required: true
+    weight: 2
+    words:
+    - CLASSIFY
+    - DETECT
+    - IDENTIFY
+    - MONITOR
+    - DETERMINE
+    - CATEGORIZE
+    - DISCRIMINATE
+    - LABEL
+    - SEGMENT
+    - FILTER
+fingerprint: This invention presents a machine learning framework specifically designed for Counter Unmanned
+  Aerial System (C-UAS) operations, utilizing acoustic sensors to detect and classify various unmanned
+  aerial vehicles (UAVs). Unlike prior art that relies on single acoustic feature representations like
+  Wavelet Scattering Transform or handcrafted features such as MFCCs, this system employs a novel smart
+  acoustic feature fusion mechanism. The framework integrates multiple complementary acoustic feature
+  domains to robustly capture temporal, spectral, and time-frequency characteristics of UAV sounds. This
+  approach significantly enhances detection accuracy under challenging conditions, including low signal-to-noise
+  ratios, reverberation, and diverse flight patterns. The system is trained on extensive, realistic audio
+  datasets encompassing different terrains, lighting conditions, and UAV types, ensuring high generalization
+  capability. By addressing the limitations of existing single-model approaches, the invention provides
+  a low-cost, passive, and highly sensitive detection solution suitable for deployment on resource-constrained
+  edge devices with minimal latency.
+ipc_codes: []
+known_art_controls: []
+meta:
+  derivation_method: llm
+  id: robust_acoustic_uav_detection_via_smart_
+  jurisdiction_note: InPASS = India only. Not sufficient alone to establish novelty.
+  title: Robust Acoustic UAV Detection via Smart Feature Fusion
+pillars:
+  data_quality:
+    label: Realistic Dataset Generalization
+    note: Addressing limited flight patterns and noisy environments
+    status: claiming
+  edge_efficiency:
+    label: Edge Deployment Constraints
+    note: Low latency and resource-constrained operation
+    status: claiming
+  ml_architecture:
+    label: ML Feature Fusion Architecture
+    note: Core innovation in fusing multiple acoustic domains
+    status: claiming
+presets:
+- name: Core novelty sweep
+  rows:
+  - modality
+  - platform
+  - task
+- name: Smart Acoustic Feature Fusion + application
+  rows:
+  - modality
+  - platform
+  - smart_feature_fusion
+- name: 'White space: Smart Acoustic Feature Fusion anywhere'
+  rows:
+  - smart_feature_fusion
+  - task

@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.pytest_cache/
+
+# Runtime output: proprietary invention data, DBs, cookies, captchas, uploads
+priorart/out/
+
+# Confidential inputs (invention sheets, meeting notes)
+*.docx
+meeting.txt
+
+# Local tooling / editor
+.claude/
+.vscode/
+.idea/
+.DS_Store
+
+# Databases / sessions / logs
+*.db
+*.db-shm
+*.db-wal
+*.pkl
+*.log

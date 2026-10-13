@@ -1,0 +1,211 @@
+# ============================================================================
+#  INVENTION PROFILE — CONFIDENTIAL, LOCAL ONLY
+#  "An ML based framework to detect and classify drones using acoustic sensors
+#   for Counter Unmanned Aerial System (C-UAS) operations"
+#  L&T PES / IIT Jammu co-IP.  Do NOT paste this file into any public tool.
+#
+#  Structure is dictated by measured portal behaviour (see PHASE0_FINDINGS.md):
+#
+#    words   -> single words only.  Safe to OR together inside one search box.
+#               Matching is WHOLE-WORD, so every morphological variant must be
+#               listed explicitly: DRONE does not find DRONES.
+#    phrases -> multi-word.  A box ORs its words, so these CANNOT go in a box;
+#               they are emitted as separate ANDed rows.
+# ============================================================================
+
+meta:
+  id: acoustic_uav
+  title: "ML framework for acoustic drone detection and classification (C-UAS)"
+  jurisdiction_note: "InPASS = India only. Not sufficient alone to establish novelty."
+
+# ---------------------------------------------------------------------------
+# THE FOUR IP PILLARS
+#   From the meeting: what we can and cannot claim as L&T IP. Every extracted
+#   claim (see core/claims.py) is tagged with exactly one of these, and
+#   out_of_scope / not_ours pillars are excluded from claim extraction rather
+#   than silently scored low - the tool should say "not ours" plainly, not
+#   just rank it last.
+# ---------------------------------------------------------------------------
+pillars:
+  acoustic_signal_processing:
+    label: "Acoustic signal processing (hardware)"
+    status: out_of_scope
+    note: "No custom board or electronic card was developed"
+  ai_ml_classification:
+    label: "AI/ML-based classification architecture"
+    status: claiming
+    note: "Primary area of interest"
+  counter_drone_interception:
+    label: "Counter-drone interception"
+    status: not_ours
+    note: "Explicitly not claimed as L&T IP"
+  secure_data_handling:
+    label: "Secure data handling"
+    status: claiming
+    note: "Secondary area of interest"
+
+# Which facet a claim touching it should be filed under. modality/platform/task
+# describe the APPLICATION context, not an inventive step, so they don't map
+# to a pillar on their own - they anchor a claim, they don't define one.
+facet_pillar_map:
+  method_core: ai_ml_classification
+  method_ml: ai_ml_classification
+  features: ai_ml_classification
+  deployment: ai_ml_classification
+  security: secure_data_handling
+  counter_uas: counter_drone_interception
+
+facets:
+
+  modality:
+    label: "Acoustic sensing"
+    weight: 3.0
+    required: true
+    words: [ACOUSTIC, ACOUSTICS, ACOUSTICAL, AUDIO, SOUND, SOUNDS, AUDIBLE,
+            MICROPHONE, MICROPHONES, SONIC, NOISE]
+    phrases: ["SOUND SIGNATURE", "ACOUSTIC SIGNATURE", "MICROPHONE ARRAY"]
+
+  platform:
+    label: "Drone / UAV"
+    weight: 3.0
+    required: true
+    words: [DRONE, DRONES, UAV, UAVS, UAS, QUADCOPTER, QUADCOPTERS, QUADROTOR,
+            MULTIROTOR, MULTICOPTER, ROTORCRAFT]
+    phrases: ["UNMANNED AERIAL", "UNMANNED AIRCRAFT", "AERIAL VEHICLE"]
+
+  task:
+    label: "Detection / classification"
+    weight: 2.0
+    required: true
+    words: [DETECTION, DETECTING, DETECT, DETECTOR, DETECTED,
+            CLASSIFICATION, CLASSIFYING, CLASSIFY, CLASSIFIER,
+            IDENTIFICATION, IDENTIFYING, RECOGNITION, RECOGNIZING,
+            SURVEILLANCE, MONITORING]
+    phrases: []
+
+  # The distinguishing technical core. Highest weight: a hit here is the single
+  # most important signal for our novelty question.
+  method_core:
+    label: "Wavelet scattering"
+    weight: 6.0
+    required: false
+    words: [WAVELET, WAVELETS, SCATTERING, MORLET, MULTIRESOLUTION, SCATTERGRAM]
+    phrases: ["WAVELET SCATTERING", "SCATTERING TRANSFORM",
+              "SCATTERING COEFFICIENTS", "WAVELET TRANSFORM"]
+
+  method_ml:
+    label: "ML architecture"
+    weight: 2.0
+    required: false
+    words: [CNN, LSTM, RNN, CRNN, TRANSFORMER, TRANSFORMERS, NEURAL,
+            DEEP, ATTENTION, GRU]
+    phrases: ["CONVOLUTIONAL NEURAL NETWORK", "NEURAL NETWORK",
+              "DEEP LEARNING", "MACHINE LEARNING", "LONG SHORT"]
+
+  features:
+    label: "Acoustic features"
+    weight: 2.5
+    required: false
+    words: [MFCC, MFCCS, SPECTROGRAM, SPECTROGRAMS, MEL, CEPSTRAL, CEPSTRUM,
+            SPECTRAL, FUSION, EMBEDDINGS]
+    phrases: ["FEATURE FUSION", "FEATURE EXTRACTION", "MEL SPECTROGRAM",
+              "TIME FREQUENCY", "FILTER BANK"]
+
+  deployment:
+    label: "Edge / real-time"
+    weight: 1.5
+    required: false
+    words: [EDGE, EMBEDDED, ONBOARD, LATENCY, REALTIME]
+    phrases: ["REAL TIME", "LOW LATENCY", "LOW POWER", "EDGE COMPUTING"]
+
+  security:
+    label: "Secure data handling"
+    weight: 1.5
+    required: false
+    words: [FEDERATED, ENCRYPTED, ENCRYPTION, PRIVACY, TAMPER, SECURE]
+    phrases: ["FEDERATED LEARNING", "PRIVACY PRESERVING", "DATA INTEGRITY"]
+
+  # Explicitly NOT claimed as L&T IP. Tracked so interception patents are
+  # recognised and down-ranked rather than mistaken for close art.
+  counter_uas:
+    label: "Counter-UAS (not claimed)"
+    weight: 0.5
+    required: false
+    words: [JAMMING, JAMMER, INTERCEPTION, INTERCEPT, NEUTRALIZATION, MITIGATION]
+    phrases: ["COUNTER UAS", "ANTI DRONE", "COUNTER DRONE"]
+
+# ---------------------------------------------------------------------------
+# IPC CODES
+#   Measured: bare section codes return ZERO. Full symbols including the
+#   subgroup are required (IC:G01S = 0, IC:G01S13/00 = 1).
+# ---------------------------------------------------------------------------
+ipc_codes:
+  - {code: "G01S3/80",   note: "Acoustic direction finders"}
+  - {code: "G01S5/18",   note: "Position fixing by acoustic waves"}
+  - {code: "G01S15/00",  note: "Sonar / acoustic detection and ranging"}
+  - {code: "G01S13/00",  note: "Radar detection and ranging"}
+  - {code: "G01S7/00",   note: "Detection-system details"}
+  - {code: "G10L25/51",  note: "Audio analysis for specific applications"}
+  - {code: "G10L25/30",  note: "Audio analysis using neural networks"}
+  - {code: "G06N3/04",   note: "Neural network architectures"}
+  - {code: "G06N3/08",   note: "Neural network learning methods"}
+  - {code: "G06N20/00",  note: "Machine learning"}
+  - {code: "B64U10/00",  note: "UAV types"}
+  - {code: "B64U20/00",  note: "UAV constructional aspects"}
+  - {code: "G08B13/16",  note: "Acoustic intrusion alarms"}
+  - {code: "G01H3/00",   note: "Measurement of sound"}
+
+axes:
+  A_novelty:
+    description: "Acoustic x UAV x task, progressively narrowed by method"
+    anchor_facets: [modality, platform, task]
+    refine_facets: [method_core, method_ml, features, deployment, security]
+  B_whitespace:
+    description: >
+      Wavelet scattering applied to ANY classification domain. Answers how
+      broadly we can claim, and whether the technique is an asset beyond
+      drone detection. Platform facet deliberately omitted.
+    anchor_facets: [method_core]
+    refine_facets: [task, method_ml, features, modality]
+
+# ---------------------------------------------------------------------------
+# DISCLOSURE FINGERPRINT — PROPRIETARY
+#   Local scoring only. Never sent to the portal, never to an external service.
+# ---------------------------------------------------------------------------
+fingerprint: >
+  A passive acoustic framework for detecting and classifying unmanned aerial
+  vehicles for counter-UAS operations. A raw audio waveform is processed by a
+  non-trainable second-order wavelet scattering transform layer using Morlet
+  wavelets as a fixed multi-resolution front end, replacing manually engineered
+  acoustic features. The logarithmically transformed scattering coefficients
+  undergo global average pooling and batch normalisation, then feed either a
+  1D convolutional network or a 2D convolutional network followed by stacked
+  LSTM layers, with dropout and max pooling for regularisation, and fully
+  connected layers producing the UAV / non-UAV decision. Further variants
+  replace the recurrent stage with a transformer and apply statistically guided
+  feature engineering that fuses complementary MFCC, spectral and mel domain
+  representations. Objectives are line-of-sight independent, day and night,
+  non-jammable, low-latency detection robust at low signal-to-noise ratio across
+  diverse drone types, rotor speeds, flight patterns and terrains, deployable on
+  resource-constrained edge hardware.
+
+known_art_controls:
+  - "single feature wavelet scattering transform with 1D CNN for drone detection"
+  - "SVM with MFCC and LPCC for acoustic UAV detection"
+  - "CRNN on mel-spectrogram for drone sound classification"
+
+# Saved query presets shown in the web UI.
+presets:
+  - name: "Core novelty sweep"
+    note: "Measured: 109 hits. The recommended starting query."
+    rows: [modality, platform, task]
+  - name: "Wavelet + acoustic UAV"
+    note: "The money query - closest possible art."
+    rows: [modality, platform, method_core]
+  - name: "White space: wavelet anywhere"
+    note: "Is the technique claimed in any other domain?"
+    rows: [method_core, task]
+  - name: "Feature fusion art"
+    rows: [modality, platform, features]
+  - name: "Edge deployment art"
+    rows: [modality, platform, deployment]

@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Prior Art Search — InPASS</title>
+<style>
+:root{
+  --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+  --ink:#e6e9ef; --dim:#98a0b0; --accent:#4da3ff; --accent2:#7c5cff;
+  --ok:#3ddc97; --warn:#ffb454; --bad:#ff6b6b;
+  --t1:#3ddc97; --t2:#ffb454; --t3:#6b7280;
+}
+@media (prefers-color-scheme: light){
+  :root{--bg:#f6f7f9;--panel:#fff;--panel2:#f0f2f5;--line:#dde1e8;
+        --ink:#12151b;--dim:#5c6575;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:14px 20px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--panel)}
+h1{font-size:15px;margin:0;font-weight:650;letter-spacing:.2px}
+.sub{color:var(--dim);font-size:12px}
+.spacer{flex:1}
+.wrap{display:grid;grid-template-columns:minmax(340px,420px) 1fr;gap:16px;padding:16px;
+  align-items:start}
+@media(max-width:980px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:14px;margin-bottom:14px}
+.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--dim);margin:0 0 10px;font-weight:600}
+label{display:block;font-size:12px;color:var(--dim);margin:8px 0 4px}
+input,select,textarea,button{font:inherit;color:var(--ink);background:var(--panel2);
+  border:1px solid var(--line);border-radius:7px;padding:7px 9px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+button{cursor:pointer;background:var(--panel2);transition:.12s}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--accent);color:#04121f;border-color:var(--accent);font-weight:650}
+button.ghost{background:transparent}
+button.sm{padding:4px 8px;font-size:12px;border-radius:6px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* facet query rows */
+.qrow{border:1px solid var(--line);border-radius:8px;padding:9px;margin-bottom:8px;
+  background:var(--panel2)}
+.qrow .head{display:flex;gap:8px;align-items:center;margin-bottom:7px}
+.qrow .head select{flex:0 0 auto;padding:4px 6px;font-size:12px}
+.qrow .name{font-weight:600;font-size:13px;flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:20px;
+  padding:2px 8px;font-size:11.5px;display:inline-flex;align-items:center;gap:5px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.chip b{font-weight:600}
+.chip .x{cursor:pointer;color:var(--dim);font-size:13px;line-height:1}
+.chip .x:hover{color:var(--bad)}
+.chip.off{opacity:.35;text-decoration:line-through}
+.chip.phrase{border-style:dashed;border-color:var(--accent2)}
+.addchip{background:transparent;border:1px dashed var(--line);border-radius:20px;
+  padding:2px 9px;font-size:11.5px;width:110px}
+.hint{font-size:11px;color:var(--dim);margin-top:6px;font-style:italic}
+
+/* captcha */
+.cap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cap img{border-radius:6px;background:#fff;height:40px;border:1px solid var(--line)}
+.cap input{width:110px;font-family:ui-monospace,monospace;letter-spacing:.12em;
+  text-transform:none}
+
+/* results */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--dim);padding:7px 8px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:var(--panel);cursor:pointer;user-select:none}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.doc:hover{background:var(--panel2)}
+tr.doc{cursor:pointer}
+.tier{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+.t1{background:var(--t1)}.t2{background:var(--t2)}.t3{background:var(--t3)}
+.appno{font-family:ui-monospace,monospace;font-size:12px;white-space:nowrap}
+.score{font-family:ui-monospace,monospace;text-align:right;font-weight:600}
+.detail{background:var(--panel2);font-size:13px;line-height:1.6}
+.detail .abs{white-space:pre-wrap;margin:6px 0}
+.badge{display:inline-block;background:var(--panel);border:1px solid var(--line);
+  border-radius:4px;padding:1px 6px;font-size:11px;margin:2px 3px 2px 0;
+  font-family:ui-monospace,monospace}
+.badge.core{border-color:var(--accent2);color:var(--accent2)}
+.ws{color:var(--accent2);font-weight:600}
+.stat{display:inline-block;margin-right:16px;font-size:12px}
+.stat b{font-size:17px;font-weight:650;display:block;font-family:ui-monospace,monospace}
+.msg{padding:9px 11px;border-radius:7px;font-size:12.5px;margin:8px 0}
+.msg.err{background:#3a1a1a;border:1px solid #6b2c2c;color:#ffb0b0}
+.msg.ok{background:#12301f;border:1px solid #235c3c;color:#9be8bf}
+.msg.info{background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
+.bar{height:5px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-top:7px}
+.bar>div{height:100%;background:var(--accent);width:0;transition:width .3s}
+.tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button{border-radius:7px;font-size:12.5px;padding:6px 12px}
+.tabs button.on{background:var(--accent);color:#04121f;border-color:var(--accent);
+  font-weight:650}
+.hide{display:none}
+code{font-family:ui-monospace,monospace;font-size:12px;background:var(--panel2);
+  padding:1px 5px;border-radius:4px}
+.qpreview{font-family:ui-monospace,monospace;font-size:11.5px;color:var(--dim);
+  background:var(--panel2);padding:8px;border-radius:6px;margin-top:8px;
+  word-break:break-word;line-height:1.7}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Prior Art Search</h1>
+  <span class="sub" id="hdr">InPASS · ipindia.gov.in</span>
+  <span class="spacer"></span>
+  <span class="sub" id="stats"></span>
+</header>
+
+<div class="wrap">
+
+  <!-- ══════════════════ LEFT: query builder ══════════════════ -->
+  <div>
+    <div class="card">
+      <h2>Presets</h2>
+      <div class="row" id="presets"></div>
+      <div class="hint" id="presetNote"></div>
+    </div>
+
+    <div class="card">
+      <h2>Query — boxes are ANDed, terms inside a box are ORed</h2>
+      <div id="qrows"></div>
+      <div class="row" style="margin-top:8px">
+        <select id="addFacet"></select>
+        <button class="sm" onclick="addFacetRow()">+ add facet row</button>
+        <button class="sm ghost" onclick="addBlankRow()">+ blank row</button>
+      </div>
+      <div class="qpreview" id="qpreview"></div>
+      <div class="hint">
+        Matching is whole-word: <code>DRONE</code> will not find "drones".
+        Multi-word phrases (dashed) become their own ANDed row — a box ORs its
+        words, so "UNMANNED AERIAL" inside one would mean UNMANNED <i>or</i> AERIAL.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Scope</h2>
+      <div class="grid2">
+        <div><label>From (mm/dd/yyyy)</label><input id="dfrom" value="01/01/2020"></div>
+        <div><label>To (mm/dd/yyyy)</label><input id="dto" value="12/31/2026"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Status</label><select id="status">
+          <option value="published">Published</option>
+          <option value="granted">Granted</option>
+          <option value="both">Both</option></select></div>
+        <div><label>Date field</label><select id="datefield">
+          <option value="PD">Publication date</option>
+          <option value="APD">Application date</option>
+          <option value="PDG">Grant date</option>
+          <option value="PRD">Priority date</option></select></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Captcha</h2>
+      <div class="cap">
+        <img id="capimg" alt="captcha"/>
+        <input id="capin" placeholder="6 chars" autocomplete="off" spellcheck="false"/>
+        <button class="sm ghost" onclick="newCaptcha()">↻</button>
+        <button class="sm ghost hide" id="autoBtn" onclick="autoSolve()">auto</button>
+      </div>
+      <div class="hint">Solve and submit promptly — portal sessions go stale
+        and return a 500 rather than a captcha error.</div>
+      <button class="primary" style="width:100%;margin-top:10px" id="goBtn"
+        onclick="runSearch()">Search</button>
+      <div id="searchMsg"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ RIGHT: results ══════════════════ -->
+  <div>
+    <div class="tabs">
+      <button class="on" onclick="tab('pipeline',this)">Document Pipeline</button>
+      <button onclick="tab('results',this)">Results</button>
+      <button onclick="tab('log',this)">Search log</button>
+      <button onclick="tab('vocab',this)">Vocabulary</button>
+    </div>
+
+    <div id="tab-pipeline">
+      <div class="card">
+        <h2>1. Upload disclosure</h2>
+        <div class="row">
+          <input type="file" id="docFile" accept=".docx">
+          <button class="sm" onclick="doUpload()">Upload</button>
+        </div>
+        <div id="uploadMsg"></div>
+      </div>
+
+      <div class="card">
+        <h2>2. Derive search profile</h2>
+        <div class="hint" style="margin-bottom:8px">
+          Reads the uploaded document and proposes its own search vocabulary
+          and IP pillars — no hand-written profile needed. Review before saving,
+          especially pillar status (claiming / out of scope / not ours) — the
+          tool cannot know your business intent from the text alone.
+        </div>
+        <button class="sm" onclick="doDeriveProfile()" disabled id="deriveBtn">Derive Profile</button>
+        <div id="deriveMsg"></div>
+        <div id="proposedProfile" class="hide" style="margin-top:10px">
+          <div class="row">
+            <label style="margin:0">Save as:</label>
+            <input id="profileIdInput" style="width:220px">
+            <button class="sm primary" onclick="doSaveProfile()">Save & Activate</button>
+          </div>
+          <div id="profilePreview" class="qpreview" style="margin-top:8px;max-height:280px;overflow:auto"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. Extract claims</h2>
+        <div class="hint" style="margin-bottom:8px">
+          Uses the ACTIVE profile (save one above first). Each claim is tagged
+          by pillar; anything not marked "claiming" is excluded from search —
+          shown here for the record, not searched.
+        </div>
+        <button class="sm" onclick="doExtractClaims()">Extract Claims</button>
+        <button class="sm ghost" onclick="doLoadClaims()">Load saved</button>
+        <div id="claimsMsg"></div>
+        <div id="claimsList" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card">
+        <h2>4. Generate safe search questions</h2>
+        <div class="hint" style="margin-bottom:8px">
+          Every row shown here is generic public vocabulary — the inventive
+          combination is never sent to the portal. Click "Run" to load a
+          question straight into the query builder on the left.
+        </div>
+        <button class="sm" onclick="doGenerateQuestions()">Generate Questions</button>
+        <button class="sm ghost" onclick="doLoadQuestions()">Load saved</button>
+        <button class="sm ghost" onclick="doExportQuestions()">Export</button>
+        <button class="sm ghost" onclick="document.getElementById('importQuestionsFile').click()">Import</button>
+        <input type="file" id="importQuestionsFile" accept=".json" class="hide" onchange="doImportQuestions(event)">
+        <div id="questionsMsg"></div>
+        <div id="questionsList" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card">
+        <h2>5. Compare against claims → verdict</h2>
+        <div class="hint" style="margin-bottom:8px">
+          After harvesting and scoring (Results tab), compare every shortlisted
+          document against each claim: anticipates / partial overlap / unrelated.
+        </div>
+        <button class="sm" onclick="doCompare()">Compare & Get Verdict</button>
+        <div id="compareMsg"></div>
+        <div id="verdictList" style="margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div id="tab-results" class="hide">
+      <div class="card">
+        <div class="row">
+          <div id="counts"></div>
+          <span class="spacer"></span>
+          <button class="sm" onclick="harvest(true)">Harvest all + abstracts</button>
+          <button class="sm ghost" onclick="harvest(false)">Pages only</button>
+          <button class="sm ghost" onclick="resumeAbstracts()">Resume abstracts</button>
+          <button class="sm" onclick="doScore()">Score</button>
+          <button class="sm ghost" onclick="doExport('md')">Export memo</button>
+          <button class="sm ghost" onclick="doExport('csv')">CSV</button>
+        </div>
+        <div class="bar hide" id="bar"><div></div></div>
+        <div id="jobMsg"></div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="margin-bottom:10px">
+          <label style="margin:0">Show</label>
+          <select id="tierFilter" onchange="renderDocs()" style="padding:4px 8px">
+            <option value="2">Tier 1 + 2 (shortlist)</option>
+            <option value="1">Tier 1 only</option>
+            <option value="3">Everything</option>
+          </select>
+          <input id="filter" placeholder="filter title / abstract…"
+            oninput="renderDocs()" style="flex:1;min-width:140px">
+        </div>
+        <div style="overflow:auto;max-height:70vh">
+          <table id="docs">
+            <thead><tr>
+              <th onclick="sortBy('score')">Score</th>
+              <th onclick="sortBy('application_number')">Application</th>
+              <th onclick="sortBy('title')">Title</th>
+              <th onclick="sortBy('application_date')">Date</th>
+              <th onclick="sortBy('found_by_queries')">Hits</th>
+            </tr></thead>
+            <tbody id="docbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-log" class="hide">
+      <div class="card"><div style="overflow:auto;max-height:78vh">
+        <table><thead><tr><th>Query</th><th>Description</th><th>Total</th>
+          <th>Harvested</th><th>When</th></tr></thead>
+          <tbody id="logbody"></tbody></table>
+      </div></div>
+    </div>
+
+    <div id="tab-vocab" class="hide">
+      <div class="card">
+        <h2>Facet vocabulary</h2>
+        <div class="hint" style="margin-bottom:10px">
+          Edits save to the profile YAML and change both future queries and how
+          results are scored.
+        </div>
+        <div id="vocab"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let P=null, SID=null, LAST=null, DOCS=[], SORT={k:'score',d:-1}, ROWS=[];
+
+const $=id=>document.getElementById(id);
+const esc=s=>(s??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const msg=(el,t,k='info')=>{$(el).innerHTML=t?`<div class="msg ${k}">${t}</div>`:''};
+
+async function api(url,opt){
+  const r=await fetch(url,opt);
+  const j=await r.json().catch(()=>({error:'bad response'}));
+  if(!r.ok) throw new Error(j.error||r.statusText);
+  return j;
+}
+
+// ─────────────────────────── boot ───────────────────────────
+async function boot(){
+  P=await api('/api/profile');
+  $('hdr').textContent=`InPASS · ${P.meta.title}`;
+  $('dfrom').value=P.defaults.date_from; $('dto').value=P.defaults.date_to;
+  if(P.vision_enabled) $('autoBtn').classList.remove('hide');
+
+  $('presets').innerHTML=P.presets.map((p,i)=>
+    `<button class="sm" onclick="loadPreset(${i})">${esc(p.name)}</button>`).join('');
+  $('addFacet').innerHTML=Object.entries(P.facets).map(([k,f])=>
+    `<option value="${k}">${esc(f.label)}</option>`).join('');
+
+  renderVocab();
+  loadPreset(0);
+  await newCaptcha();
+  refreshLog();
+
+  // Silently restore any claims/questions saved by a PRIOR session for this
+  // profile -- e.g. generated on intranet, now reopened after switching to
+  // the internet network. No error shown if there's nothing saved yet; this
+  // is a convenience, not a required step.
+  try{
+    const c=await api('/api/claims');
+    if(c.found) renderClaims(c.claims);
+  }catch(e){}
+  try{
+    const q=await api('/api/questions');
+    if(q.found) renderQuestions(q.questions);
+  }catch(e){}
+}
+
+// ───────────────────── query row building ─────────────────────
+function loadPreset(i){
+  const p=P.presets[i];
+  $('presetNote').textContent=p.note||'';
+  ROWS=p.rows.map(f=>mkRow(f));
+  renderRows();
+}
+function mkRow(facetKey){
+  const f=P.facets[facetKey];
+  return {facet:facetKey, label:f?f.label:facetKey, field:'ABS',
+          words:(f?f.words:[]).map(w=>({t:w,on:true})),
+          phrases:(f?f.phrases:[]).map(w=>({t:w,on:false}))};
+}
+function addFacetRow(){ ROWS.push(mkRow($('addFacet').value)); renderRows(); }
+function addBlankRow(){ ROWS.push({facet:null,label:'Custom',field:'ABS',words:[],phrases:[]}); renderRows(); }
+function delRow(i){ ROWS.splice(i,1); renderRows(); }
+function toggle(i,kind,j){ ROWS[i][kind][j].on=!ROWS[i][kind][j].on; renderRows(); }
+function delTerm(i,kind,j){ ROWS[i][kind].splice(j,1); renderRows(); }
+function addTerm(i,ev){
+  const v=ev.target.value.trim().toUpperCase();
+  if(ev.key!=='Enter'||!v) return;
+  const kind=v.includes(' ')?'phrases':'words';
+  ROWS[i][kind].push({t:v,on:true}); ev.target.value=''; renderRows();
+}
+
+function renderRows(){
+  $('qrows').innerHTML=ROWS.map((r,i)=>{
+    const chips=(kind)=>r[kind].map((c,j)=>
+      `<span class="chip ${c.on?'':'off'} ${kind==='phrases'?'phrase':''}">
+         <b onclick="toggle(${i},'${kind}',${j})">${esc(c.t)}</b>
+         <span class="x" onclick="delTerm(${i},'${kind}',${j})">×</span></span>`).join('');
+    return `<div class="qrow">
+      <div class="head">
+        <select onchange="ROWS[${i}].field=this.value;renderRows()">
+          ${Object.entries(P.fields).map(([k,v])=>
+            `<option value="${k}" ${r.field===k?'selected':''}>${esc(v)}</option>`).join('')}
+        </select>
+        <span class="name">${esc(r.label)}</span>
+        <button class="sm ghost" onclick="delRow(${i})">×</button>
+      </div>
+      <div class="chips">${chips('words')}${chips('phrases')}
+        <input class="addchip" placeholder="+ term" onkeydown="addTerm(${i},event)">
+      </div></div>`;
+  }).join('');
+  renderPreview();
+}
+
+/* Build the actual portal rows.
+   Active single words collapse into ONE box (the portal ORs a box's words).
+   Each active phrase needs its OWN row, because inside a box it would be
+   silently ORed apart. */
+function buildRows(){
+  const out=[];
+  for(const r of ROWS){
+    const w=r.words.filter(c=>c.on).map(c=>c.t);
+    if(w.length) out.push({field:r.field,text:w.join(' '),_label:r.label});
+    for(const p of r.phrases.filter(c=>c.on))
+      out.push({field:r.field,text:p.t,_label:r.label+' (phrase)'});
+  }
+  return out;
+}
+function renderPreview(){
+  const rows=buildRows();
+  $('qpreview').innerHTML = rows.length
+    ? rows.map(r=>`<b>${r.field}</b>: ${esc(r.text)}`).join('<br><span style="color:var(--accent)">AND</span> ')
+      + `<br><br>${rows.length} row${rows.length>1?'s':''} · max 16`
+    : '<i>no active terms</i>';
+}
+
+// ─────────────────────────── captcha ───────────────────────────
+async function newCaptcha(){
+  $('capimg').src=''; $('capin').value='';
+  try{
+    const j=await api('/api/session',{method:'POST'});
+    SID=j.sid; $('capimg').src='data:image/png;base64,'+j.captcha;
+  }catch(e){ msg('searchMsg','Could not reach portal: '+e.message,'err'); }
+}
+async function autoSolve(){
+  try{
+    const j=await api(`/api/session/${SID}/solve`,{method:'POST'});
+    $('capimg').src='data:image/png;base64,'+j.captcha;
+    $('capin').value=j.answer;
+  }catch(e){ msg('searchMsg',e.message,'err'); }
+}
+
+// ─────────────────────────── search ───────────────────────────
+async function runSearch(){
+  const rows=buildRows();
+  if(!rows.length) return msg('searchMsg','Add at least one term.','err');
+  if(rows.length>16) return msg('searchMsg',`${rows.length} rows — portal allows 16. Deselect some phrases.`,'err');
+  if(!$('capin').value.trim()) return msg('searchMsg','Type the captcha.','err');
+
+  $('goBtn').disabled=true; msg('searchMsg','Searching…','info');
+  try{
+    LAST=await api('/api/search',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sid:SID,rows,captcha:$('capin').value.trim(),
+        date_from:$('dfrom').value,date_to:$('dto').value,
+        status:$('status').value,date_field:$('datefield').value})});
+    msg('searchMsg',`<b>${LAST.total.toLocaleString()}</b> documents · ${LAST.pages} page(s) · <code>${esc(LAST.qid)}</code>`,'ok');
+    $('counts').innerHTML=`<span class="stat">last query<b>${LAST.total.toLocaleString()}</b></span>`;
+    await loadShortlist(); refreshLog();
+  }catch(e){ msg('searchMsg',e.message,'err'); }
+  $('goBtn').disabled=false;
+  await newCaptcha();
+}
+
+// ─────────────────────────── harvest ───────────────────────────
+async function harvest(abstracts){
+  if(!LAST) return msg('jobMsg','Run a search first.','err');
+  try{
+    const j=await api('/api/harvest',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sid:SID,qid:LAST.qid,abstracts})});
+    $('bar').classList.remove('hide'); poll(j.job_id);
+  }catch(e){ msg('jobMsg',e.message,'err'); }
+}
+async function poll(id){
+  try{
+    const j=await api('/api/job/'+id);
+    $('bar').firstElementChild.style.width=(j.total?100*j.done/j.total:0)+'%';
+    msg('jobMsg',esc(j.message||j.state),j.state==='failed'?'err':'info');
+    if(j.state==='running') return setTimeout(()=>poll(id),700);
+    $('bar').classList.add('hide');
+    if(j.state==='finished'){ msg('jobMsg','Harvest complete.','ok'); await doScore(); }
+  }catch(e){ msg('jobMsg',e.message,'err'); }
+}
+
+async function resumeAbstracts(){
+  try{
+    const j=await api('/api/fetch-abstracts',{method:'POST'});
+    $('bar').classList.remove('hide'); poll(j.job_id);
+  }catch(e){ msg('jobMsg',e.message,'err'); }
+}
+async function doScore(){
+  try{
+    const j=await api('/api/score',{method:'POST'});
+    msg('jobMsg',`Scored ${j.scored} documents.`,'ok');
+    await loadShortlist();
+  }catch(e){ msg('jobMsg',e.message,'err'); }
+}
+
+// ─────────────────────────── results ───────────────────────────
+async function doExport(fmt){
+  try{
+    const j=await api('/api/export/'+fmt);
+    msg('jobMsg',`Wrote <code>${esc(j.path)}</code> (${j.rows} rows).`,'ok');
+  }catch(e){ msg('jobMsg',e.message,'err'); }
+}
+async function loadShortlist(){
+  const j=await api('/api/shortlist?max_tier=3&limit=500');
+  DOCS=j.results; const s=j.stats;
+  $('stats').innerHTML=`${s.documents} docs · ${s.with_abstract} abstracts · ${s.queries_done} queries`;
+
+  // A harvested-but-unscored run silently shows an empty table otherwise --
+  // the shortlist query only returns documents that HAVE a score, so "0
+  // rows, no explanation" is exactly what a real bug and "just needs a
+  // click" look like from the outside. Tell them which one it is.
+  if(DOCS.length===0 && s.documents>0){
+    const need = s.with_abstract===0 ? 'Click "Harvest all + abstracts" above, then "Score".'
+                                     : 'Harvested, but not scored yet — click "Score" above.';
+    $('docbody').innerHTML=`<tr><td colspan="5" style="color:var(--dim);padding:20px">
+      ${s.documents} document(s) found for this search, 0 visible below. ${need}</td></tr>`;
+    $('counts').innerHTML='';
+    return;
+  }
+  renderDocs();
+}
+function sortBy(k){ SORT.d = SORT.k===k ? -SORT.d : -1; SORT.k=k; renderDocs(); }
+function renderDocs(){
+  const maxT=+$('tierFilter').value, f=$('filter').value.toLowerCase();
+  let rows=DOCS.filter(d=>(d.tier??3)<=maxT);
+  if(f) rows=rows.filter(d=>((d.title||'')+(d.abstract||'')).toLowerCase().includes(f));
+  rows.sort((a,b)=>{
+    const x=a[SORT.k]??'', y=b[SORT.k]??'';
+    return (x>y?1:x<y?-1:0)*SORT.d;
+  });
+  const n={1:0,2:0,3:0}; DOCS.forEach(d=>n[d.tier??3]++);
+  $('counts').innerHTML=
+    `<span class="stat">tier 1<b style="color:var(--t1)">${n[1]}</b></span>
+     <span class="stat">tier 2<b style="color:var(--t2)">${n[2]}</b></span>
+     <span class="stat">tier 3<b style="color:var(--t3)">${n[3]}</b></span>
+     <span class="stat">showing<b>${rows.length}</b></span>`;
+
+  $('docbody').innerHTML=rows.map((d,i)=>{
+    const ws=(d.rationale||'').startsWith('WHITE SPACE');
+    return `<tr class="doc" onclick="expand(${i},this)">
+      <td class="score"><span class="tier t${d.tier??3}"></span>${d.score??'—'}</td>
+      <td class="appno">${esc(d.application_number)}</td>
+      <td>${ws?'<span class="ws">◆ </span>':''}${esc(d.title||'')}</td>
+      <td class="appno">${esc(d.application_date||'')}</td>
+      <td class="score">${d.found_by_queries??''}</td></tr>
+      <tr class="hide" id="d${i}"><td colspan="5" class="detail">
+        <div><b>Why:</b> ${esc(d.rationale||'')}</div>
+        <div style="margin:6px 0">${Object.entries(d.matched_facets||{}).map(([k,v])=>
+          `<span class="badge ${k==='method_core'?'core':''}">${esc(k)}: ${esc(v.slice(0,4).join(', '))}</span>`).join('')}</div>
+        <div class="abs">${esc(d.abstract||'(abstract not fetched yet)')}</div>
+        <div style="color:var(--dim);font-size:12px">
+          ${d.applicant?'<b>Applicant:</b> '+esc(d.applicant)+'<br>':''}
+          ${d.ipc?'<b>IPC:</b> '+esc(d.ipc):''}</div>
+      </td></tr>`;
+  }).join('') || '<tr><td colspan="5" style="color:var(--dim);padding:20px">No documents. Run a search, then Harvest.</td></tr>';
+}
+function expand(i,tr){
+  const d=$('d'+i); d.classList.toggle('hide');
+}
+
+// ─────────────────────────── log + vocab ───────────────────────────
+async function refreshLog(){
+  const j=await api('/api/log');
+  $('logbody').innerHTML=j.log.map(r=>
+    `<tr><td class="appno">${esc(r.qid)}</td><td style="font-size:12px">${esc(r.description)}</td>
+     <td class="score">${r.total_hits??''}</td><td class="score">${r.harvested??''}</td>
+     <td class="appno">${esc(r.executed_at||'')}</td></tr>`).join('')
+     || '<tr><td colspan="5" style="color:var(--dim)">No queries yet.</td></tr>';
+}
+function renderVocab(){
+  $('vocab').innerHTML=Object.entries(P.facets).map(([k,f])=>
+    `<div class="qrow"><div class="head">
+       <span class="name">${esc(f.label)} <span class="sub">w=${f.weight}${f.required?' · required':''}</span></span>
+       <button class="sm ghost" onclick="saveVocab('${k}')">save</button></div>
+     <label>Words (single, ORed in one box)</label>
+     <textarea id="v-w-${k}" rows="2" style="width:100%">${esc(f.words.join(', '))}</textarea>
+     <label>Phrases (multi-word, own ANDed row)</label>
+     <textarea id="v-p-${k}" rows="1" style="width:100%">${esc(f.phrases.join(', '))}</textarea>
+     </div>`).join('');
+}
+async function saveVocab(k){
+  const words=$('v-w-'+k).value.split(',').map(s=>s.trim()).filter(Boolean);
+  const phrases=$('v-p-'+k).value.split(',').map(s=>s.trim()).filter(Boolean);
+  await api('/api/profile/facet',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name:k,words,phrases})});
+  P=await api('/api/profile'); renderVocab();
+}
+
+// ─────────────────────────── document pipeline ───────────────────────────
+let UPLOADED_PATH=null, PROPOSED_PROFILE=null, LAST_CLAIMS=[];
+
+async function doUpload(){
+  const f=$('docFile').files[0];
+  if(!f) return msg('uploadMsg','Choose a .docx file first.','err');
+  const fd=new FormData(); fd.append('file',f);
+  try{
+    const j=await api('/api/upload',{method:'POST',body:fd});
+    UPLOADED_PATH=j.path;
+    msg('uploadMsg',`Uploaded <code>${esc(j.filename)}</code>.`,'ok');
+    $('deriveBtn').disabled=false;
+  }catch(e){ msg('uploadMsg',e.message,'err'); }
+}
+
+async function doDeriveProfile(){
+  msg('deriveMsg','Reading document, deriving vocabulary…','info');
+  try{
+    const j=await api('/api/derive-profile',{method:'POST'});
+    PROPOSED_PROFILE=j.profile;
+    const weak = j.method==='rules';
+    msg('deriveMsg', weak
+      ? '⚠️ No LLM reachable — used a weak keyword fallback. Review every facet before saving.'
+      : `Derived via LLM. Review below, then save.`, weak?'err':'ok');
+    $('profileIdInput').value=j.suggested_id;
+    $('proposedProfile').classList.remove('hide');
+    renderProposedProfile();
+  }catch(e){ msg('deriveMsg',e.message,'err'); }
+}
+
+function renderProposedProfile(){
+  const p=PROPOSED_PROFILE;
+  const facetRows=Object.entries(p.facets).map(([k,f])=>
+    `<div style="margin-bottom:6px"><b>${esc(k)}</b> ${f.required?'(anchor)':''} w=${f.weight}
+     <div style="color:var(--dim);font-size:11.5px">${esc(f.words.join(', '))}${f.phrases.length?' | phrases: '+esc(f.phrases.join(', ')):''}</div></div>`
+  ).join('');
+  const pillarRows=Object.entries(p.pillars||{}).map(([k,pl])=>
+    `<div>• <b>${esc(pl.label||k)}</b> — status: <code>${esc(pl.status)}</code></div>`
+  ).join('') || '<div style="color:var(--dim)">(no pillars proposed)</div>';
+  $('profilePreview').innerHTML=
+    `<b>Title:</b> ${esc(p.meta.title)}<br><b>Core technique:</b> ${esc((p.axes.B_whitespace.anchor_facets||[])[0]||'—')}<br><br>
+     <b>Facets</b><br>${facetRows}<br><b>Pillars (review status!)</b><br>${pillarRows}`;
+}
+
+async function doSaveProfile(){
+  const profile_id=$('profileIdInput').value.trim();
+  if(!profile_id) return msg('deriveMsg','Give the profile an id.','err');
+  try{
+    const j=await api('/api/save-profile',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({profile_id, profile:PROPOSED_PROFILE})});
+    msg('deriveMsg',`Saved & activated <code>${esc(j.path)}</code>. Run id ${j.run_id}.`,'ok');
+    P=await api('/api/profile');   // refresh left panel to reflect the new active profile
+    renderVocab();
+  }catch(e){ msg('deriveMsg',e.message,'err'); }
+}
+
+function renderClaims(claims){
+  LAST_CLAIMS=claims;
+  $('claimsList').innerHTML=claims.map(c=>
+    `<div class="qrow"><div class="head">
+       <input type="checkbox" checked data-claim="${esc(c.id)}" style="width:auto">
+       <span class="name">${esc(c.id)} [${esc(c.pillar)}] ${c.status!=='claiming'?'<i>('+esc(c.status)+')</i>':''}</span>
+     </div><div style="font-size:13px">${esc(c.text)}</div></div>`
+  ).join('') || '<div class="hint">No claims found.</div>';
+}
+async function doExtractClaims(){
+  msg('claimsMsg','Extracting claims…','info');
+  try{
+    const j=await api('/api/extract-claims',{method:'POST'});
+    const weak = j.method==='rules';
+    msg('claimsMsg', `${j.claims.length} claim(s) extracted (${j.method}), saved to disk.` +
+      (weak?' ⚠️ Weak fallback — review carefully.':''), weak?'err':'ok');
+    renderClaims(j.claims);
+  }catch(e){ msg('claimsMsg',e.message,'err'); }
+}
+async function doLoadClaims(){
+  msg('claimsMsg','Loading saved claims…','info');
+  try{
+    const j=await api('/api/claims');
+    if(!j.found) return msg('claimsMsg','No saved claims for the active profile yet — extract some first (needs intranet).','err');
+    msg('claimsMsg',`Loaded ${j.claims.length} saved claim(s).`,'ok');
+    renderClaims(j.claims);
+  }catch(e){ msg('claimsMsg',e.message,'err'); }
+}
+
+function renderQuestions(questions){
+  window._LAST_QUESTIONS=questions;
+  $('questionsList').innerHTML=questions.map((q,i)=>
+    `<div class="qrow"><div style="font-size:13px;margin-bottom:6px">${esc(q.question)}</div>
+     <div class="qpreview">${q.rows.map(r=>`<b>${r[0]}</b>: ${esc(r[1])}`).join('<br>')}</div>
+     <button class="sm" style="margin-top:6px" onclick='loadQuestionIntoBuilder(${i})'>Run this search →</button>
+     </div>`
+  ).join('') || '<div class="hint">No questions.</div>';
+}
+async function doGenerateQuestions(){
+  const claim_ids=[...document.querySelectorAll('[data-claim]:checked')].map(el=>el.dataset.claim);
+  msg('questionsMsg','Generating questions…','info');
+  try{
+    const j=await api('/api/generate-questions',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({claim_ids})});
+    msg('questionsMsg',`${j.questions.length} distinct search(es), saved to disk — `+
+      `safe to switch to the internet network now and click "Load saved" here.`,'ok');
+    renderQuestions(j.questions);
+  }catch(e){ msg('questionsMsg',e.message,'err'); }
+}
+async function doLoadQuestions(){
+  msg('questionsMsg','Loading saved questions…','info');
+  try{
+    const j=await api('/api/questions');
+    if(!j.found) return msg('questionsMsg','No saved questions for the active profile yet — generate some first (needs intranet).','err');
+    msg('questionsMsg',`Loaded ${j.questions.length} saved search(es). Read the captcha on the left and click "Run this search" below.`,'ok');
+    renderQuestions(j.questions);
+  }catch(e){ msg('questionsMsg',e.message,'err'); }
+}
+
+// ── export / import as an actual file, independent of server state ──
+// This is the literal "save it, carry it, load it back later" the on-disk
+// auto-persist doesn't give you: a real file you can see, rename, back up,
+// or hand to someone else, that works even against a server that was
+// restarted or never saw this profile before.
+function doExportQuestions(){
+  const qs = window._LAST_QUESTIONS || [];
+  if(!qs.length) return msg('questionsMsg','Nothing to export — generate or load questions first.','err');
+  const blob = new Blob([JSON.stringify(qs, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `search_questions_${stamp}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  msg('questionsMsg', `Exported ${qs.length} question(s) to your Downloads folder.`, 'ok');
+}
+
+function doImportQuestions(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const qs = JSON.parse(reader.result);
+      if(!Array.isArray(qs) || !qs.every(q=>q.rows && q.question!==undefined))
+        throw new Error('not a valid questions file');
+      renderQuestions(qs);
+      msg('questionsMsg', `Imported ${qs.length} question(s) from ${esc(file.name)}. `+
+        `Read the captcha on the left and click "Run this search" below.`, 'ok');
+    }catch(e){ msg('questionsMsg', `Could not read that file: ${e.message}`, 'err'); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';   // allow re-importing the same filename later
+}
+
+function loadQuestionIntoBuilder(i){
+  const q=window._LAST_QUESTIONS[i];
+  ROWS=q.rows.map(([field,text])=>({facet:null,label:'From question',field,
+    words:text.split(' ').map(t=>({t,on:true})),phrases:[]}));
+  renderRows();
+  document.querySelectorAll('.tabs button').forEach(b=>{
+    if(b.textContent.trim()==='Results') b.click();
+  });
+  msg('searchMsg','Loaded into query builder — read the captcha and click Search.','info');
+}
+
+async function doCompare(){
+  msg('compareMsg','Comparing harvested documents against claims (this reads every abstract — may take a moment)…','info');
+  try{
+    const j=await api('/api/compare',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:'{}'});
+    msg('compareMsg',`Compared ${j.documents_compared} documents. Methods: ${JSON.stringify(j.methods)}`,'ok');
+    const icons={exposed:'⚠️ EXPOSED',watch:'👀 WATCH',watch_unverified:'❓ WATCH (unverified)',clear:'✅ CLEAR'};
+    $('verdictList').innerHTML=Object.entries(j.summary).map(([cid,v])=>{
+      const hits=[...v.anticipates,...v.partial].map(h=>
+        `<div style="margin:4px 0;padding-left:10px;border-left:2px solid var(--line)">
+           <b>${esc(h.application_number)}</b> ${h.verified?'':'<i>[unverified]</i>'} — ${esc(h.title)}<br>
+           <span style="color:var(--dim)">${esc(h.reasoning||'')}</span></div>`).join('');
+      return `<div class="qrow"><b>${esc(cid)}</b> — ${icons[v.status]||v.status}
+        <div style="font-size:12.5px;color:var(--dim);margin:4px 0">${esc(v.claim.slice(0,140))}</div>
+        ${hits}</div>`;
+    }).join('');
+  }catch(e){ msg('compareMsg',e.message,'err'); }
+}
+
+function tab(name,btn){
+  ['pipeline','results','log','vocab'].forEach(t=>$('tab-'+t).classList.toggle('hide',t!==name));
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b===btn));
+  if(name==='log') refreshLog();
+}
+boot();
+</script>
+</body></html>
